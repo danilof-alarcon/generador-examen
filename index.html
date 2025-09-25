@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Generador de Exámenes</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        font-weight: 700;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .content {
+        padding: 40px;
+      }
+
+      .step {
+        display: none;
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      .step.active {
+        display: block;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .step-title {
+        font-size: 1.8rem;
+        color: #333;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .form-group {
+        margin-bottom: 25px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s ease;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #4facfe;
+        box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+      }
+
+      .form-group textarea {
+        min-height: 200px;
+        resize: vertical;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin: 10px 5px;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+      }
+
+      .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-secondary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+      }
+
+      .alert {
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-weight: 500;
+      }
+
+      .alert-info {
+        background: #e3f2fd;
+        color: #1976d2;
+        border-left: 4px solid #2196f3;
+      }
+
+      .alert-success {
+        background: #e8f5e8;
+        color: #2e7d32;
+        border-left: 4px solid #4caf50;
+      }
+
+      .alert-error {
+        background: #ffebee;
+        color: #c62828;
+        border-left: 4px solid #f44336;
+      }
+
+      .question-card {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+      }
+
+      .question-card:hover {
+        border-color: #4facfe;
+        box-shadow: 0 5px 15px rgba(79, 172, 254, 0.1);
+      }
+
+      .question-number {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 15px;
+      }
+
+      .question-text {
+        font-size: 1.2rem;
+        color: #333;
+        margin-bottom: 20px;
+        line-height: 1.6;
+      }
+
+      .options {
+        display: grid;
+        gap: 10px;
+      }
+
+      .option {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        background: white;
+        border: 2px solid #e1e5e9;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .option:hover {
+        border-color: #4facfe;
+        background: #f0f8ff;
+      }
+
+      .option.selected {
+        border-color: #4facfe;
+        background: #e3f2fd;
+      }
+
+      .option.correct {
+        border-color: #4caf50;
+        background: #e8f5e8;
+      }
+
+      .option.incorrect {
+        border-color: #f44336;
+        background: #ffebee;
+      }
+
+      .option input[type="radio"] {
+        margin-right: 10px;
+        transform: scale(1.2);
+      }
+
+      .progress-bar {
+        background: #e9ecef;
+        border-radius: 10px;
+        height: 8px;
+        margin-bottom: 20px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        height: 100%;
+        transition: width 0.3s ease;
+      }
+
+      .results {
+        text-align: center;
+        padding: 30px;
+      }
+
+      .score {
+        font-size: 3rem;
+        font-weight: bold;
+        color: #4facfe;
+        margin-bottom: 20px;
+      }
+
+      .summary {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 25px;
+        margin: 20px 0;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e9ecef;
+      }
+
+      .summary-item:last-child {
+        border-bottom: none;
+      }
+
+      .navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 2px solid #e9ecef;
+      }
+
+      .step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+      }
+
+      .step-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #e9ecef;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+      }
+
+      .step-dot.active {
+        background: #4facfe;
+      }
+
+      .step-dot.completed {
+        background: #4caf50;
+      }
+
+      @media (max-width: 768px) {
+        .container {
+          margin: 10px;
+          border-radius: 15px;
+        }
+
+        .content {
+          padding: 20px;
+        }
+
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .btn {
+          width: 100%;
+          margin: 5px 0;
+        }
+
+        .navigation {
+          flex-direction: column;
+          gap: 15px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎓 Generador de Exámenes</h1>
+        <p>Crea y resuelve exámenes de forma interactiva</p>
+      </div>
+
+      <div class="content">
+        <!-- Paso 1: Carga del JSON -->
+        <div class="step active" id="step1">
+          <h2 class="step-title">📝 Paso 1: Cargar Datos del Examen</h2>
+
+          <div class="alert alert-info">
+            <strong>💡 Consejo:</strong> Pega en ChatGPT este prompt y pásale el
+            cuestionario o el archivo de donde quieres que saque la información:
+            <br /><br />
+            <div
+              style="
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                margin-bottom: 15px;
+              "
+            >
+              <button
+                class="btn"
+                onclick="copyPrompt()"
+                style="margin: 0; padding: 10px 20px; font-size: 14px"
+              >
+                📋 Copiar Prompt
+              </button>
+              <span
+                id="copyStatus"
+                style="color: #4caf50; font-weight: bold; display: none"
+                >¡Copiado!</span
+              >
+            </div>
+            <em
+              >"En base al siguiente documento genérame 30 preguntas sobre el
+              contenido y entrégamelo en el siguiente formato:</em
+            >
+            <br /><br />
+            <code
+              style="
+                background: #f0f0f0;
+                padding: 10px;
+                border-radius: 5px;
+                display: block;
+                font-size: 12px;
+              "
+            >
+              {<br />
+              &nbsp;&nbsp;"preguntas": [<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;{<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"pregunta": "¿Pregunta 1?",<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"opciones": {<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"a": "Opción
+              1",<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"b": "Opción
+              2",<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"c": "Opción
+              3",<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"d": "Opción 4"<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"respuesta_correcta": "b"<br />
+              &nbsp;&nbsp;&nbsp;&nbsp;}<br />
+              &nbsp;&nbsp;]<br />
+              }<br />
+            </code>
+          </div>
+
+          <div class="form-group">
+            <label for="jsonInput">Pega aquí el JSON del examen:</label>
+            <textarea
+              id="jsonInput"
+              placeholder="Pega el JSON aquí..."
+            ></textarea>
+          </div>
+
+          <div
+            id="jsonError"
+            class="alert alert-error"
+            style="display: none"
+          ></div>
+
+          <div class="navigation">
+            <div></div>
+            <button class="btn" id="loadJsonBtn" onclick="loadJson()">
+              Cargar Examen
+            </button>
+          </div>
+        </div>
+
+        <!-- Paso 2: Configuración -->
+        <div class="step" id="step2">
+          <h2 class="step-title">⚙️ Paso 2: Configurar Examen</h2>
+
+          <div class="form-group">
+            <label for="questionCount">Número de preguntas:</label>
+            <select id="questionCount">
+              <option value="all">Todas las preguntas</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="correctionMode">Modo de corrección:</label>
+            <select id="correctionMode">
+              <option value="instant">
+                Corrección instantánea (al responder cada pregunta)
+              </option>
+              <option value="final">Corrección al final del examen</option>
+            </select>
+          </div>
+
+          <div class="navigation">
+            <button class="btn btn-secondary" onclick="goToStep(1)">
+              ← Anterior
+            </button>
+            <button class="btn" onclick="startExam()">Comenzar Examen</button>
+          </div>
+        </div>
+
+        <!-- Paso 3: Examen -->
+        <div class="step" id="step3">
+          <h2 class="step-title">📚 Examen en Progreso</h2>
+
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+          </div>
+
+          <div id="examContent">
+            <!-- Las preguntas se cargarán aquí dinámicamente -->
+          </div>
+
+          <div class="navigation">
+            <button
+              class="btn btn-secondary"
+              id="prevBtn"
+              onclick="previousQuestion()"
+              style="display: none"
+            >
+              ← Anterior
+            </button>
+            <button class="btn" id="nextBtn" onclick="nextQuestion()">
+              Siguiente →
+            </button>
+            <button
+              class="btn btn-success"
+              id="finishBtn"
+              onclick="finishExam()"
+              style="display: none"
+            >
+              Revisar Respuestas
+            </button>
+          </div>
+        </div>
+
+        <!-- Paso 4: Resultados -->
+        <div class="step" id="step4">
+          <h2 class="step-title">📊 Resultados del Examen</h2>
+
+          <div class="results">
+            <div class="score" id="finalScore">0/0</div>
+            <div class="summary" id="examSummary">
+              <!-- El resumen se cargará aquí -->
+            </div>
+          </div>
+
+          <div class="navigation">
+            <button class="btn btn-secondary" onclick="goToStep(1)">
+              Nuevo Examen
+            </button>
+            <button class="btn" onclick="restartExam()">
+              Reiniciar Examen
+            </button>
+          </div>
+        </div>
+
+        <!-- Indicador de pasos -->
+        <div class="step-indicator">
+          <div class="step-dot active" id="dot1"></div>
+          <div class="step-dot" id="dot2"></div>
+          <div class="step-dot" id="dot3"></div>
+          <div class="step-dot" id="dot4"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Variables globales
+      let examData = null;
+      let currentStep = 1;
+      let currentQuestion = 0;
+      let userAnswers = {};
+      let shuffledQuestions = [];
+      let shuffledOptions = {};
+      let correctionMode = "instant";
+
+      // Función para cambiar de paso
+      function goToStep(step) {
+        // Ocultar todos los pasos
+        document
+          .querySelectorAll(".step")
+          .forEach((s) => s.classList.remove("active"));
+
+        // Mostrar el paso actual
+        document.getElementById(`step${step}`).classList.add("active");
+
+        // Actualizar indicadores
+        document.querySelectorAll(".step-dot").forEach((dot, index) => {
+          dot.classList.remove("active", "completed");
+          if (index + 1 < step) {
+            dot.classList.add("completed");
+          } else if (index + 1 === step) {
+            dot.classList.add("active");
+          }
+        });
+
+        currentStep = step;
+      }
+
+      // Función para cargar JSON
+      function loadJson() {
+        const jsonInput = document.getElementById("jsonInput").value.trim();
+        const errorDiv = document.getElementById("jsonError");
+
+        if (!jsonInput) {
+          showError("Por favor, pega el JSON del examen.");
+          return;
+        }
+
+        try {
+          const parsed = JSON.parse(jsonInput);
+
+          // Validar estructura
+          if (!parsed.preguntas || !Array.isArray(parsed.preguntas)) {
+            throw new Error(
+              'El JSON debe tener la estructura: {"preguntas": [...]}'
+            );
+          }
+
+          if (parsed.preguntas.length === 0) {
+            throw new Error("El examen debe tener al menos una pregunta.");
+          }
+
+          // Validar cada pregunta
+          parsed.preguntas.forEach((pregunta, index) => {
+            if (
+              !pregunta.pregunta ||
+              !pregunta.opciones ||
+              !pregunta.respuesta_correcta
+            ) {
+              throw new Error(
+                `La pregunta ${index + 1} no tiene la estructura correcta.`
+              );
+            }
+
+            if (
+              !pregunta.opciones.a ||
+              !pregunta.opciones.b ||
+              !pregunta.opciones.c ||
+              !pregunta.opciones.d
+            ) {
+              throw new Error(
+                `La pregunta ${index + 1} debe tener opciones a, b, c y d.`
+              );
+            }
+
+            if (!["a", "b", "c", "d"].includes(pregunta.respuesta_correcta)) {
+              throw new Error(
+                `La pregunta ${
+                  index + 1
+                } debe tener una respuesta correcta válida (a, b, c o d).`
+              );
+            }
+          });
+
+          examData = parsed;
+          hideError();
+
+          // Llenar opciones de número de preguntas
+          const questionCountSelect = document.getElementById("questionCount");
+          questionCountSelect.innerHTML =
+            '<option value="all">Todas las preguntas</option>';
+
+          for (let i = 1; i <= Math.min(examData.preguntas.length, 20); i++) {
+            const option = document.createElement("option");
+            option.value = i;
+            option.textContent = `${i} pregunta${i > 1 ? "s" : ""}`;
+            questionCountSelect.appendChild(option);
+          }
+
+          goToStep(2);
+        } catch (error) {
+          showError(`Error al procesar el JSON: ${error.message}`);
+        }
+      }
+
+      // Función para mostrar errores
+      function showError(message) {
+        const errorDiv = document.getElementById("jsonError");
+        errorDiv.textContent = message;
+        errorDiv.style.display = "block";
+      }
+
+      // Función para ocultar errores
+      function hideError() {
+        document.getElementById("jsonError").style.display = "none";
+      }
+
+      // Función para iniciar el examen
+      function startExam() {
+        const questionCount = document.getElementById("questionCount").value;
+        correctionMode = document.getElementById("correctionMode").value;
+
+        // Preparar preguntas
+        const allQuestions = examData.preguntas;
+        const numQuestions =
+          questionCount === "all"
+            ? allQuestions.length
+            : parseInt(questionCount);
+
+        // Mezclar preguntas
+        shuffledQuestions = [...allQuestions]
+          .sort(() => Math.random() - 0.5)
+          .slice(0, numQuestions);
+
+        // Mezclar opciones para cada pregunta
+        shuffledOptions = {};
+        shuffledQuestions.forEach((question, index) => {
+          const options = Object.entries(question.opciones);
+          const shuffled = options.sort(() => Math.random() - 0.5);
+          shuffledOptions[index] = shuffled;
+        });
+
+        currentQuestion = 0;
+        userAnswers = {};
+
+        goToStep(3);
+        showQuestion();
+      }
+
+      // Función para mostrar una pregunta
+      function showQuestion() {
+        const question = shuffledQuestions[currentQuestion];
+        const examContent = document.getElementById("examContent");
+        const progressFill = document.getElementById("progressFill");
+
+        // Actualizar barra de progreso
+        const progress =
+          ((currentQuestion + 1) / shuffledQuestions.length) * 100;
+        progressFill.style.width = `${progress}%`;
+
+        // Crear HTML de la pregunta
+        const questionHtml = `
+                <div class="question-card">
+                    <div class="question-number">${currentQuestion + 1}</div>
+                    <div class="question-text">${question.pregunta}</div>
+                    <div class="options">
+                        ${shuffledOptions[currentQuestion]
+                          .map(
+                            ([key, value], index) => `
+                            <label class="option" onclick="selectOption('${key}')">
+                                <input type="radio" name="answer" value="${key}" ${
+                              userAnswers[currentQuestion] === key
+                                ? "checked"
+                                : ""
+                            }>
+                                <span>${value}</span>
+                            </label>
+                        `
+                          )
+                          .join("")}
+                    </div>
+                </div>
+            `;
+
+        examContent.innerHTML = questionHtml;
+
+        // Actualizar botones de navegación
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        const finishBtn = document.getElementById("finishBtn");
+
+        prevBtn.style.display = currentQuestion > 0 ? "inline-block" : "none";
+
+        if (currentQuestion === shuffledQuestions.length - 1) {
+          nextBtn.style.display = "none";
+          finishBtn.style.display = "inline-block";
+        } else {
+          nextBtn.style.display = "inline-block";
+          finishBtn.style.display = "none";
+        }
+      }
+
+      // Función para seleccionar una opción
+      function selectOption(optionKey) {
+        userAnswers[currentQuestion] = optionKey;
+
+        // Actualizar visualmente la selección
+        document
+          .querySelectorAll(".option")
+          .forEach((opt) => opt.classList.remove("selected"));
+        event.target.closest(".option").classList.add("selected");
+
+        // Si es modo instantáneo, mostrar resultado
+        if (correctionMode === "instant") {
+          setTimeout(() => {
+            showInstantFeedback();
+          }, 500);
+        }
+      }
+
+      // Función para mostrar feedback instantáneo
+      function showInstantFeedback() {
+        const question = shuffledQuestions[currentQuestion];
+        const userAnswer = userAnswers[currentQuestion];
+        const correctAnswer = question.respuesta_correcta;
+
+        // Encontrar la opción correcta en las opciones mezcladas
+        const correctOption = shuffledOptions[currentQuestion].find(
+          ([key]) => key === correctAnswer
+        );
+        const userOption = shuffledOptions[currentQuestion].find(
+          ([key]) => key === userAnswer
+        );
+
+        document.querySelectorAll(".option").forEach((option) => {
+          const input = option.querySelector("input");
+          const value = input.value;
+
+          if (value === correctAnswer) {
+            option.classList.add("correct");
+          } else if (value === userAnswer && userAnswer !== correctAnswer) {
+            option.classList.add("incorrect");
+          }
+        });
+      }
+
+      // Función para ir a la siguiente pregunta
+      function nextQuestion() {
+        if (currentQuestion < shuffledQuestions.length - 1) {
+          currentQuestion++;
+          showQuestion();
+        }
+      }
+
+      // Función para ir a la pregunta anterior
+      function previousQuestion() {
+        if (currentQuestion > 0) {
+          currentQuestion--;
+          showQuestion();
+        }
+      }
+
+      // Función para finalizar el examen
+      function finishExam() {
+        const results = calculateResults();
+        showResults(results);
+        goToStep(4);
+      }
+
+      // Función para calcular resultados
+      function calculateResults() {
+        let correct = 0;
+        let total = shuffledQuestions.length;
+        const details = [];
+
+        shuffledQuestions.forEach((question, index) => {
+          const userAnswer = userAnswers[index];
+          const correctAnswer = question.respuesta_correcta;
+          const isCorrect = userAnswer === correctAnswer;
+
+          if (isCorrect) correct++;
+
+          details.push({
+            question: question.pregunta,
+            userAnswer: userAnswer,
+            correctAnswer: correctAnswer,
+            isCorrect: isCorrect,
+          });
+        });
+
+        return {
+          correct,
+          total,
+          percentage: Math.round((correct / total) * 100),
+          details,
+        };
+      }
+
+      // Función para mostrar resultados
+      function showResults(results) {
+        const finalScore = document.getElementById("finalScore");
+        const examSummary = document.getElementById("examSummary");
+
+        finalScore.textContent = `${results.correct}/${results.total}`;
+
+        const summaryHtml = `
+                <h3>Resumen del Examen</h3>
+                <div class="summary-item">
+                    <span>Preguntas correctas:</span>
+                    <span style="color: #4caf50; font-weight: bold;">${
+                      results.correct
+                    }</span>
+                </div>
+                <div class="summary-item">
+                    <span>Preguntas incorrectas:</span>
+                    <span style="color: #f44336; font-weight: bold;">${
+                      results.total - results.correct
+                    }</span>
+                </div>
+                <div class="summary-item">
+                    <span>Porcentaje:</span>
+                    <span style="color: #4facfe; font-weight: bold;">${
+                      results.percentage
+                    }%</span>
+                </div>
+                <div class="summary-item">
+                    <span>Calificación:</span>
+                    <span style="color: ${
+                      results.percentage >= 70 ? "#4caf50" : "#f44336"
+                    }; font-weight: bold;">
+                        ${
+                          results.percentage >= 90
+                            ? "Excelente"
+                            : results.percentage >= 80
+                            ? "Muy Bien"
+                            : results.percentage >= 70
+                            ? "Bien"
+                            : results.percentage >= 60
+                            ? "Regular"
+                            : "Necesitas estudiar más"
+                        }
+                    </span>
+                </div>
+            `;
+
+        examSummary.innerHTML = summaryHtml;
+      }
+
+      // Función para reiniciar el examen
+      function restartExam() {
+        if (examData) {
+          startExam();
+        }
+      }
+
+      // Función para copiar el prompt
+      function copyPrompt() {
+        const prompt = `En base al siguiente documento genérame 30 preguntas sobre el contenido y entrégamelo en el siguiente formato:
+
+{
+  "preguntas": [
+    {
+      "pregunta": "¿Pregunta 1?",
+      "opciones": {
+        "a": "Opción 1",
+        "b": "Opción 2",
+        "c": "Opción 3",
+        "d": "Opción 4"
+      },
+      "respuesta_correcta": "b"
+    }
+  ]
+}`;
+
+        navigator.clipboard
+          .writeText(prompt)
+          .then(() => {
+            const status = document.getElementById("copyStatus");
+            status.style.display = "inline";
+            setTimeout(() => {
+              status.style.display = "none";
+            }, 2000);
+          })
+          .catch((err) => {
+            console.error("Error al copiar: ", err);
+            alert(
+              "No se pudo copiar el prompt. Por favor, cópialo manualmente."
+            );
+          });
+      }
+
+      // Inicialización
+      document.addEventListener("DOMContentLoaded", function () {
+        // Configurar eventos
+        document
+          .getElementById("jsonInput")
+          .addEventListener("input", function () {
+            hideError();
+          });
+      });
+    </script>
+  </body>
+</html>
